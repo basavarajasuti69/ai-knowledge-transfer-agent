@@ -1,5 +1,6 @@
 streamlit
 ollama
+groq
 chromadb
 sentence-transformers
 pytest
