@@ -37,6 +37,32 @@ The application provides an interactive web interface where developers can ask q
 
 ---
 
+## 📸 Screenshots
+
+### 🖥️ CodeMind AI Dashboard
+
+Explore the dark-themed interface, repository information, and interactive quick actions.
+
+![CodeMind AI Dashboard](screenshots/dashboard.png)
+
+### 🧠 AI-Powered Code Explanation
+
+CodeMind AI explains the implementation of `get_user()`, including dictionary lookups, return values, and handling unknown user IDs.
+
+![AI Code Explanation](screenshots/code-explanation.png)
+
+---
+
+## 🌐 Live Demo
+
+Try CodeMind AI here:
+
+**[Launch CodeMind AI](https://codemind-ai-2026.streamlit.app/)**
+
+**[View Source Code on GitHub](https://github.com/basavarajasuti69/ai-knowledge-transfer-agent)**
+
+---
+
 ## ✨ Features
 
 ### 🔍 Semantic Code Search
