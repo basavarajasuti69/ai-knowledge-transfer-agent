@@ -2,6 +2,7 @@ import os
 
 import streamlit as st
 import ollama
+from groq import Groq
 
 from rag_engine import CodebaseRAG
 from code_analyzer import CodeAnalyzer
@@ -11,6 +12,52 @@ from code_analyzer import CodeAnalyzer
 # ---------------------------------
 
 LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2:1b")
+AI_PROVIDER = os.getenv("AI_PROVIDER", "ollama").lower()
+
+GROQ_MODEL = os.getenv(
+    "GROQ_MODEL",
+    "openai/gpt-oss-120b",
+)
+
+
+def ask_ai(messages, temperature=0):
+    """Send a chat request to the configured AI provider."""
+
+    if AI_PROVIDER == "groq":
+        api_key = os.getenv("GROQ_API_KEY")
+
+        if not api_key:
+            try:
+                api_key = st.secrets["GROQ_API_KEY"]
+            except (KeyError, FileNotFoundError):
+                raise RuntimeError(
+                    "GROQ_API_KEY is missing. Configure it "
+                    "in your environment or Streamlit secrets."
+                )
+
+        client = Groq(api_key=api_key)
+
+        response = client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=messages,
+            temperature=temperature,
+        )
+
+        return response.choices[0].message.content
+
+    if AI_PROVIDER == "ollama":
+        response = ollama.chat(
+            model=LLM_MODEL,
+            messages=messages,
+            options={
+                "temperature": temperature,
+                "num_ctx": 4096,
+            },
+        )
+
+        return response["message"]["content"]
+
+    raise ValueError(f"Unsupported AI provider: {AI_PROVIDER}")
 
 TOP_K = 5
 MIN_SIMILARITY = 0.30
@@ -770,8 +817,7 @@ RETRIEVED REPOSITORY CONTEXT:
 Answer using only the evidence above.
 """
 
-    response = ollama.chat(
-        model=LLM_MODEL,
+    return ask_ai(
         messages=[
             {
                 "role": "system",
@@ -782,13 +828,8 @@ Answer using only the evidence above.
                 "content": user_prompt,
             },
         ],
-        options={
-            "temperature": 0,
-            "num_ctx": 4096,
-        },
+        temperature=0,
     )
-
-    return response["message"]["content"]
 
 def generate_bug_analysis(question, chunks):
 
@@ -865,8 +906,7 @@ STRICT RULES:
 10. Never claim a suggested fix has been tested.
 """
 
-    response = ollama.chat(
-        model=LLM_MODEL,
+    return ask_ai(
         messages=[
             {
                 "role": "system",
@@ -880,13 +920,8 @@ STRICT RULES:
                 ),
             },
         ],
-        options={
-            "temperature": 0,
-            "num_ctx": 4096,
-        },
+        temperature=0,
     )
-
-    return response["message"]["content"]
 
 
 def get_function_facts(analyzer, function_name):
@@ -996,8 +1031,7 @@ STRICT RULES:
 6. Do not claim that a test failure proves the application itself is incorrect.
 """
 
-    response = ollama.chat(
-        model=LLM_MODEL,
+    return ask_ai(
         messages=[
             {
                 "role": "system",
@@ -1013,13 +1047,8 @@ STRICT RULES:
                 ),
             },
         ],
-        options={
-            "temperature": 0,
-            "num_ctx": 4096,
-        },
+        temperature=0,
     )
-
-    return response["message"]["content"]
 
 
 def generate_verified_investigation(
