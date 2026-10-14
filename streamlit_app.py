@@ -1,3 +1,5 @@
+import os
+
 import streamlit as st
 import ollama
 
@@ -8,7 +10,7 @@ from code_analyzer import CodeAnalyzer
 # Configuration
 # ---------------------------------
 
-LLM_MODEL = "llama3.2:1b"
+LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2:1b")
 
 TOP_K = 5
 MIN_SIMILARITY = 0.30
