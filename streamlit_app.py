@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import streamlit as st
 import ollama
@@ -6,6 +7,7 @@ from groq import Groq
 
 from rag_engine import CodebaseRAG
 from code_analyzer import CodeAnalyzer
+import design_system as ds
 
 # ---------------------------------
 # Configuration
@@ -67,75 +69,92 @@ MIN_SIMILARITY = 0.30
 # Page configuration
 # ---------------------------------
 
+BRAND_ICON = Path(__file__).parent / "assets" / "cm-hex.svg"
+
 st.set_page_config(
     page_title="Codemind Ai",
-    page_icon="🤖",
+    page_icon=str(BRAND_ICON) if BRAND_ICON.exists() else "◆",
     layout="wide",
 )
 
+ds.inject(st)
+
 
 # ==========================================
-# CODEMIND AI — PROFESSIONAL SIDEBAR
+# CODEMIND AI — SIDEBAR
 # ==========================================
 
 with st.sidebar:
     st.markdown(
-        """
-        <div style="padding: 12px 0 20px 0;">
-            <h1 style="margin-bottom: 0; font-size: 28px;">
-                🧠 Codemind Ai
-            </h1>
-            <p style="color: #94A3B8; font-size: 13px;">
-                Your intelligent code companion
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.divider()
-
-    st.markdown("### 📂 Repository")
-    st.markdown(
-        """
-        <div style="background: #151B2E; padding: 12px; border-radius: 10px;
-                    border: 1px solid #29334D;">
-            <div style="font-size: 12px; color: #94A3B8;">
-                ACTIVE PROJECT
-            </div>
-            <div style="font-size: 16px; font-weight: 600; margin-top: 4px;">
-                sample_project
-            </div>
-            <div style="font-size: 12px; color: #34D399; margin-top: 6px;">
-                ● Local repository
+        f"""
+        <div style="display:flex;align-items:center;gap:14px;">
+            {ds.HEXAGRAM}
+            <div>
+                <div style="font-family: var(--font-display); font-size:17px;
+                            font-weight:400; letter-spacing:0.4em;
+                            text-transform:uppercase; color:#ffffff;">
+                    Codemind Ai
+                </div>
+                <div style="font-family: var(--font-mono); font-size:9.5px;
+                            letter-spacing:0.2em; text-transform:uppercase;
+                            color:#7d7d7d; margin-top:7px;">
+                    Code Intelligence
+                </div>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    st.divider()
+    st.markdown(ds.hairline(), unsafe_allow_html=True)
 
-    st.markdown("### ✨ Capabilities")
     st.markdown(
-        """
-        - 🔍 Semantic code search
-        - 🧠 Code explanations
-        - 🐛 Basic bug detection
-        - 🔗 Dependency analysis
-        - 🧪 Test generation
-        - 📊 Change impact analysis
-        """
+        '<div class="cm-side-label">Repository</div>',
+        unsafe_allow_html=True,
     )
 
-    st.divider()
+    st.markdown(
+        ds.repository_panel("sample_project", "Local repository"),
+        unsafe_allow_html=True,
+    )
 
-    st.markdown("### ⚙️ Configuration")
-    st.markdown("**Configured AI model**")
-    st.code(LLM_MODEL, language=None)
-    st.markdown("**Framework**")
-    st.caption("Streamlit · Python · ChromaDB")
-    st.caption("Tests: pytest · Embeddings: MiniLM")
+    st.markdown(ds.hairline(), unsafe_allow_html=True)
+
+    st.markdown(
+        '<div class="cm-side-label">Capabilities</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        ds.listing_rows([
+            ("01", "Semantic code search"),
+            ("02", "Code explanations"),
+            ("03", "Bug detection"),
+            ("04", "Dependency analysis"),
+            ("05", "Test generation"),
+            ("06", "Change impact analysis"),
+        ]),
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(ds.hairline(), unsafe_allow_html=True)
+
+    st.markdown(
+        '<div class="cm-side-label">Configuration</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        ds.spec_list([
+            (LLM_MODEL.upper(), "Model"),
+            ("Streamlit", "Framework"),
+            ("ChromaDB", "Vector store"),
+            ("MiniLM", "Embeddings"),
+        ]),
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(ds.hairline(), unsafe_allow_html=True)
 
     if st.button("Clear conversation", use_container_width=True):
         st.session_state.messages = []
@@ -1220,366 +1239,169 @@ def retrieve_for_investigation(rag, question):
 # Main application
 # ---------------------------------
 
+# ---------------------------------
+# Top navigation
+# ---------------------------------
+
 st.markdown(
-    """
-    <style>
-    :root {
-        --canvas: #070b16;
-        --surface: rgba(17, 24, 43, 0.78);
-        --surface-raised: rgba(22, 32, 55, 0.92);
-        --line: rgba(148, 163, 184, 0.16);
-        --text-primary: #f4f7ff;
-        --text-muted: #9aa9c2;
-        --accent: #8b7cff;
-        --accent-cyan: #43d9e8;
-    }
-
-    .stApp {
-        color: var(--text-primary);
-        background:
-            radial-gradient(ellipse at 12% 0%, rgba(85, 66, 190, 0.18), transparent 34rem),
-            radial-gradient(ellipse at 92% 16%, rgba(29, 158, 190, 0.12), transparent 30rem),
-            var(--canvas);
-    }
-
-    .block-container {
-        padding-top: 2.4rem;
-        padding-bottom: 5rem;
-        max-width: 1320px;
-    }
-
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0d1425 0%, #090f1d 100%);
-        border-right: 1px solid var(--line);
-    }
-
-    [data-testid="stSidebar"] > div:first-child {
-        padding-top: 1.5rem;
-    }
-
-    [data-testid="stSidebar"] h1,
-    [data-testid="stSidebar"] h2,
-    [data-testid="stSidebar"] h3 {
-        color: var(--text-primary);
-        letter-spacing: -0.02em;
-    }
-
-    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
-    [data-testid="stSidebar"] label {
-        color: var(--text-muted);
-    }
-
-    h1, h2, h3 {
-        color: var(--text-primary);
-        letter-spacing: -0.035em;
-    }
-
-    [data-testid="stCaptionContainer"] {
-        color: var(--text-muted);
-    }
-
-    .hero {
-        position: relative;
-        isolation: isolate;
-        overflow: hidden;
-        padding: clamp(28px, 5vw, 58px);
-        border-radius: 26px;
-        background:
-            linear-gradient(115deg, rgba(18, 22, 48, 0.98), rgba(12, 35, 58, 0.94));
-        border: 1px solid rgba(139, 124, 255, 0.28);
-        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-        margin-bottom: 32px;
-    }
-
-    .hero::before {
-        content: "";
-        position: absolute;
-        z-index: -1;
-        width: 420px;
-        height: 420px;
-        top: -250px;
-        right: -60px;
-        border-radius: 50%;
-        background: rgba(99, 102, 241, 0.3);
-        filter: blur(90px);
-    }
-
-    .hero::after {
-        content: "";
-        position: absolute;
-        z-index: -1;
-        width: 300px;
-        height: 300px;
-        right: 22%;
-        bottom: -260px;
-        border-radius: 50%;
-        background: rgba(34, 211, 238, 0.22);
-        filter: blur(80px);
-    }
-
-    .hero-label {
-        display: inline-flex;
-        align-items: center;
-        gap: 9px;
-        color: #b8b2ff;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.19em;
-        text-transform: uppercase;
-    }
-
-    .hero-label::before {
-        content: "";
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--accent-cyan);
-        box-shadow: 0 0 14px rgba(67, 217, 232, 0.9);
-    }
-
-    .hero-title {
-        color: #fff;
-        font-size: clamp(42px, 7vw, 68px);
-        font-weight: 850;
-        letter-spacing: -0.065em;
-        margin: 17px 0 10px;
-        line-height: 1.05;
-        text-shadow: 0 8px 40px rgba(139, 124, 255, 0.22);
-    }
-
-    .hero-description {
-        color: #b8c5da;
-        font-size: 15px;
-        line-height: 1.8;
-        max-width: 660px;
-    }
-
-    .status-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        margin-top: 22px;
-        padding: 9px 14px;
-        border-radius: 999px;
-        background: rgba(16, 185, 129, 0.09);
-        border: 1px solid rgba(52, 211, 153, 0.24);
-        color: #8bf0c7;
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 0.03em;
-    }
-
-    .feature-card {
-        position: relative;
-        overflow: hidden;
-        background: linear-gradient(145deg, rgba(19, 28, 49, 0.9), rgba(12, 19, 35, 0.9));
-        border: 1px solid var(--line);
-        border-radius: 20px;
-        padding: 23px;
-        min-height: 166px;
-        margin-bottom: 16px;
-        box-shadow: 0 10px 34px rgba(0, 0, 0, 0.13),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.035);
-        transition: transform 180ms ease, border-color 180ms ease,
-                    box-shadow 180ms ease;
-    }
-
-    .feature-card:hover {
-        transform: translateY(-4px);
-        border-color: rgba(139, 124, 255, 0.48);
-        box-shadow: 0 16px 42px rgba(0, 0, 0, 0.23),
-                    0 0 24px rgba(99, 102, 241, 0.09);
-    }
-
-    .feature-icon {
-        display: grid;
-        place-items: center;
-        width: 44px;
-        height: 44px;
-        font-size: 21px;
-        border-radius: 14px;
-        margin-bottom: 17px;
-        background: linear-gradient(135deg, rgba(139, 124, 255, 0.17), rgba(67, 217, 232, 0.1));
-        border: 1px solid rgba(139, 124, 255, 0.15);
-    }
-
-    .feature-title {
-        color: #eef3ff;
-        font-size: 15px;
-        font-weight: 700;
-        letter-spacing: -0.01em;
-        margin-bottom: 7px;
-    }
-
-    .feature-description {
-        color: #9eacc3;
-        font-size: 12px;
-        line-height: 1.7;
-    }
-
-    div[data-testid="stChatMessage"] {
-        background: rgba(13, 20, 36, 0.66);
-        border: 1px solid rgba(100, 116, 139, 0.2);
-        border-radius: 18px;
-        padding: 14px 16px;
-        margin: 10px 0;
-        backdrop-filter: blur(12px);
-    }
-
-    div[data-testid="stChatInput"] {
-        border: 1px solid rgba(139, 124, 255, 0.32);
-        border-radius: 18px;
-        background: rgba(13, 20, 36, 0.92);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22),
-                    0 0 22px rgba(99, 102, 241, 0.07);
-    }
-
-    div[data-testid="stChatInput"]:focus-within {
-        border-color: rgba(67, 217, 232, 0.65);
-        box-shadow: 0 0 0 1px rgba(67, 217, 232, 0.2),
-                    0 8px 34px rgba(0, 0, 0, 0.25);
-    }
-
-    .stButton > button {
-        color: #e8eaff;
-        background: linear-gradient(135deg, rgba(116, 96, 255, 0.2), rgba(43, 178, 202, 0.12));
-        border: 1px solid rgba(139, 124, 255, 0.3);
-        border-radius: 12px;
-        transition: all 160ms ease;
-    }
-
-    .stButton > button:hover {
-        color: #fff;
-        border-color: rgba(67, 217, 232, 0.58);
-        box-shadow: 0 0 20px rgba(67, 217, 232, 0.12);
-    }
-
-    [data-testid="stExpander"] {
-        border: 1px solid var(--line);
-        border-radius: 15px;
-        background: rgba(13, 20, 36, 0.58);
-    }
-
-    [data-testid="stAlert"] {
-        border-radius: 14px;
-    }
-
-    @media (max-width: 720px) {
-        .block-container {
-            padding-top: 1.2rem;
-            padding-bottom: 3rem;
-        }
-
-        .hero {
-            border-radius: 20px;
-        }
-
-        .feature-card {
-            min-height: 145px;
-            padding: 18px;
-        }
-    }
-    </style>
-
-    <div class="hero">
-        <div class="hero-label">AI Developer Intelligence Platform</div>
-
-        <div class="hero-title">
-            Codemind Ai
-        </div>
-
-        <div class="hero-description">
-            Understand your codebase, explore dependencies, analyze
-            execution flows, generate tests, and investigate problems
-            with an AI-powered development assistant.
-        </div>
-
-        <div class="status-pill">
-            ● Repository: sample_project
-        </div>
-    </div>
-    """,
+    ds.top_nav(
+        "Repository / sample_project",
+        "Nocturne / V1.0",
+    ),
     unsafe_allow_html=True,
 )
 
 # ---------------------------------
-# Feature cards
+# Hero band
 # ---------------------------------
 
-st.markdown("### Your development workspace")
+st.markdown(
+    ds.hero(
+        title="Codemind Ai",
+        eyebrow="AI Developer Intelligence Platform",
+        lead=(
+            "Understand your codebase, explore dependencies, analyze "
+            "execution flows, generate tests, and investigate problems "
+            "with an AI-powered development assistant."
+        ),
+        meta=[
+            ("Project", "sample_project"),
+            ("Language", "Python"),
+            ("Provider", AI_PROVIDER),
+            ("Interface", "Streamlit"),
+        ],
+    ),
+    unsafe_allow_html=True,
+)
 
-col1, col2 = st.columns(2)
+cta_column, note_column = st.columns([1, 2])
+
+with cta_column:
+
+    if st.button(
+        "Ask the codebase",
+        type="primary",
+        use_container_width=True,
+    ):
+        st.session_state.quick_prompt = (
+            "How does this application work?"
+        )
+
+with note_column:
+
+    st.markdown(
+        '<div class="cm-cta-note">'
+        "Retrieval-augmented generation &middot; "
+        "Python static analysis &middot; Local-first inference"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+# ---------------------------------
+# Initialize RAG
+# ---------------------------------
+
+try:
+
+    with st.spinner("Loading the codebase index..."):
+
+        rag = load_rag_engine()
+
+except Exception as error:
+
+    st.error("Could not initialize the codebase index.")
+
+    st.exception(error)
+
+    st.stop()
+
+# ---------------------------------
+# Specification row
+# ---------------------------------
+
+st.markdown(
+    ds.spec_cells([
+        (str(rag.collection.count()), "Indexed chunks"),
+        ("sample_project", "Active project"),
+        (LLM_MODEL.upper(), "Model"),
+        ("ChromaDB / MiniLM", "Retrieval"),
+    ]),
+    unsafe_allow_html=True,
+)
+
+# ---------------------------------
+# Capabilities
+# ---------------------------------
+
+st.markdown(
+    ds.section_header(
+        "01",
+        "Your development workspace",
+        "Four engines read the indexed repository: semantic retrieval, "
+        "AST-level static analysis, pytest execution, and "
+        "change-impact tracing.",
+    ),
+    unsafe_allow_html=True,
+)
+
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.markdown(
-        """
-        <div class="feature-card">
-            <div class="feature-icon">🧠</div>
-            <div class="feature-title">Code Intelligence</div>
-            <div class="feature-description">
-                Understand functions, execution flows, callers,
-                and application behavior.
-            </div>
-        </div>
-        """,
+        ds.capability_card(
+            "01",
+            "Code Intelligence",
+            "Understand functions, execution flows, callers, "
+            "and application behavior.",
+        ),
         unsafe_allow_html=True,
     )
 
 with col2:
     st.markdown(
-        """
-        <div class="feature-card">
-            <div class="feature-icon">🔎</div>
-            <div class="feature-title">Semantic Code Search</div>
-            <div class="feature-description">
-                Retrieve relevant source code using embeddings
-                and retrieval-augmented generation.
-            </div>
-        </div>
-        """,
+        ds.capability_card(
+            "02",
+            "Semantic Search",
+            "Retrieve relevant source code using embeddings "
+            "and retrieval-augmented generation.",
+        ),
         unsafe_allow_html=True,
     )
 
-col3, col4 = st.columns(2)
-
 with col3:
     st.markdown(
-        """
-        <div class="feature-card">
-            <div class="feature-icon">🧪</div>
-            <div class="feature-title">Test Assistant</div>
-            <div class="feature-description">
-                Suggest test cases, generate approved pytest files,
-                and execute supported tests.
-            </div>
-        </div>
-        """,
+        ds.capability_card(
+            "03",
+            "Test Assistant",
+            "Suggest test cases, generate approved pytest files, "
+            "and execute supported tests.",
+        ),
         unsafe_allow_html=True,
     )
 
 with col4:
     st.markdown(
-        """
-        <div class="feature-card">
-            <div class="feature-icon">🛠️</div>
-            <div class="feature-title">Code Investigation</div>
-            <div class="feature-description">
-                Explore dependencies, change impact,
-                and potential code issues.
-            </div>
-        </div>
-        """,
+        ds.capability_card(
+            "04",
+            "Investigation",
+            "Explore dependencies, change impact, "
+            "and potential code issues.",
+        ),
         unsafe_allow_html=True,
     )
 
-st.markdown("---")
+# ---------------------------------
+# Query section
+# ---------------------------------
 
-st.markdown("### 💬 Ask your codebase")
-
-st.caption(
-    "Ask a question below to explore your repository "
-    "with AI-assisted code analysis."
+st.markdown(
+    ds.section_header(
+        "02",
+        "Ask your codebase",
+        "Ask a question below to explore your repository with "
+        "AI-assisted code analysis.",
+    ),
+    unsafe_allow_html=True,
 )
 
 with st.expander("How does this application work?"):
@@ -1600,29 +1422,6 @@ with st.expander("How does this application work?"):
 
 
 # ---------------------------------
-# Initialize RAG
-# ---------------------------------
-
-try:
-
-    with st.spinner("Loading the codebase index..."):
-
-        rag = load_rag_engine()
-
-    st.success(
-        f"Codebase ready: {rag.collection.count()} indexed chunks."
-    )
-
-except Exception as error:
-
-    st.error("Could not initialize the codebase index.")
-
-    st.exception(error)
-
-    st.stop()
-
-
-# ---------------------------------
 # Initialize chat history
 # ---------------------------------
 
@@ -1631,75 +1430,52 @@ if "messages" not in st.session_state:
 
 
 # ---------------------------------
-# Display previous messages
+# Quick actions
 # ---------------------------------
 
-for message in st.session_state.messages:
-
-    with st.chat_message(message["role"]):
-
-        st.markdown(message["content"])
-
-        if message.get("sources"):
-
-            with st.expander("View retrieved source code"):
-
-                for source in message["sources"]:
-
-                    st.markdown(
-                        f"**{source['file_path']}** "
-                        f"(lines {source['start_line']}-"
-                        f"{source['end_line']})"
-                    )
-
-                    st.code(source["text"], language="python")
-
-                    if show_debug:
-                        st.caption(
-                            f"Cosine similarity: "
-                            f"{source['similarity']:.3f}"
-                        )
-
-
-# ---------------------------------
-# User input
-# ---------------------------------
-
-st.markdown("#### ✨ Quick actions")
+st.markdown(
+    '<div class="cm-side-label">Quick actions</div>',
+    unsafe_allow_html=True,
+)
 
 col1, col2, col3, col4 = st.columns(4)
 
 quick_prompts = {
-    "🔍 Explain Code": "Explain the overall structure of this codebase.",
-    "🐛 Find Bugs": "Scan the codebase for basic bugs.",
-    "🧪 Run Tests": "Run tests for get_user.",
-    "🔗 Dependencies": "Analyze the dependencies in this codebase.",
+    "Explain Code": "Explain the overall structure of this codebase.",
+    "Find Bugs": "Scan the codebase for basic bugs.",
+    "Run Tests": "Run tests for get_user.",
+    "Dependencies": "Analyze the dependencies in this codebase.",
 }
 
 if "quick_prompt" not in st.session_state:
     st.session_state.quick_prompt = None
 
 with col1:
-    if st.button("🔍 Explain Code", use_container_width=True):
-        st.session_state.quick_prompt = quick_prompts["🔍 Explain Code"]
+    if st.button("Explain Code", use_container_width=True):
+        st.session_state.quick_prompt = quick_prompts["Explain Code"]
 
 with col2:
-    if st.button("🐛 Find Bugs", use_container_width=True):
-        st.session_state.quick_prompt = quick_prompts["🐛 Find Bugs"]
+    if st.button("Find Bugs", use_container_width=True):
+        st.session_state.quick_prompt = quick_prompts["Find Bugs"]
 
 with col3:
-    if st.button("🧪 Run Tests", use_container_width=True):
-        st.session_state.quick_prompt = quick_prompts["🧪 Run Tests"]
+    if st.button("Run Tests", use_container_width=True):
+        st.session_state.quick_prompt = quick_prompts["Run Tests"]
 
 with col4:
-    if st.button("🔗 Dependencies", use_container_width=True):
-        st.session_state.quick_prompt = quick_prompts["🔗 Dependencies"]
+    if st.button("Dependencies", use_container_width=True):
+        st.session_state.quick_prompt = quick_prompts["Dependencies"]
+
+
+# ---------------------------------
+# User input
+# ---------------------------------
 
 user_question = st.session_state.pop("quick_prompt", None)
 
 if not user_question:
     user_question = st.chat_input(
-        "Ask CodeMind AI anything about your code..."
+        "Ask Codemind Ai about your code..."
     )
 
 if user_question:
@@ -1711,9 +1487,6 @@ if user_question:
             "content": question,
         }
     )
-
-    with st.chat_message("user"):
-        st.markdown(question)
 
     try:
 
@@ -1915,34 +1688,6 @@ if user_question:
             for chunk in chunks
         ]
 
-        # Display the assistant response for every question path.
-        with st.chat_message("assistant"):
-
-            st.markdown(answer)
-
-            if sources:
-
-                with st.expander("View retrieved source code"):
-
-                    for source in sources:
-
-                        st.markdown(
-                            f"**{source['file_path']}** "
-                            f"(lines {source['start_line']}-"
-                            f"{source['end_line']})"
-                        )
-
-                        st.code(
-                            source["text"],
-                            language="python",
-                        )
-
-                        if show_debug:
-                            st.caption(
-                                "Cosine similarity: "
-                                f"{source['similarity']:.3f}"
-                            )
-
         # Save the assistant response.
         st.session_state.messages.append(
             {
@@ -1960,3 +1705,53 @@ if user_question:
 
         with st.expander("Error details"):
             st.exception(error)
+
+
+# ---------------------------------
+# Display the conversation
+# ---------------------------------
+
+for message in st.session_state.messages:
+
+    with st.chat_message(message["role"]):
+
+        st.markdown(
+            ds.message_label(message["role"]),
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(message["content"])
+
+        if message.get("sources"):
+
+            with st.expander("View retrieved source code"):
+
+                for source in message["sources"]:
+
+                    st.markdown(
+                        f"**{source['file_path']}** "
+                        f"(lines {source['start_line']}-"
+                        f"{source['end_line']})"
+                    )
+
+                    st.code(source["text"], language="python")
+
+                    if show_debug:
+                        st.caption(
+                            f"Cosine similarity: "
+                            f"{source['similarity']:.3f}"
+                        )
+
+
+# ---------------------------------
+# Footer
+# ---------------------------------
+
+st.markdown(
+    ds.footer(
+        "Codemind Ai — Nocturne Edition",
+        "RAG · Static analysis · Local-first inference",
+    ),
+    unsafe_allow_html=True,
+)
+

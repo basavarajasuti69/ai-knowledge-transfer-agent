@@ -41,13 +41,13 @@ The application provides an interactive web interface where developers can ask q
 
 ### 🖥️ CodeMind AI Dashboard
 
-Explore the dark-themed interface, repository information, and interactive quick actions.
+The Nocturne interface: absolute-black canvas, letterspaced uppercase display type, gold primary action, hairline-divided specification row, and a hexagon wordmark.
 
 ![CodeMind AI Dashboard](screenshots/dashboard.png)
 
 ### 🧠 AI-Powered Code Explanation
 
-CodeMind AI explains the implementation of `get_user()`, including dictionary lookups, return values, and handling unknown user IDs.
+CodeMind AI answers from retrieved source code, citing real files and line ranges, with a mono-labelled conversation thread.
 
 ![AI Code Explanation](screenshots/code-explanation.png)
 
@@ -90,9 +90,42 @@ Try CodeMind AI here:
 - Explain test failures using actual pytest output.
 
 ### 💻 Interactive Web Interface
-- Dark-themed Streamlit interface.
+- Nocturne design system: absolute-black canvas, letterspaced uppercase display type, and a single gold accent.
+- Sharp-cornered components, hairline dividers, and a three-family type split (display / serif text / monospace).
 - Quick prompts for common developer tasks.
 - Chat-based interaction with the codebase.
+
+---
+
+## 🎨 Design System
+
+The interface follows a **"Nocturne"** design system — a synthesis of two luxury-automotive design languages, implemented in `design_system.py`.
+
+### Inspiration
+
+| Source | Adopted idea |
+|---|---|
+| **Bugatti** | Near-pure black canvas, uppercase letterspaced display type, a strict display / serif / monospace type trinity, transparent outlined calls to action, 0px radii on everything except buttons, hairline dividers instead of shadows, and one desaturated link colour as the only other relief. |
+| **Lamborghini** | Absolute black, one chromatic accent (gold) reserved for primary actions, extreme uppercase display scale with tight leading, ghost buttons with a 50% white hairline, depth built from surface layering rather than shadows, and hexagonal brand geometry. |
+
+### Tokens
+
+| Group | Values |
+|---|---|
+| Canvas | `#000000` |
+| Surfaces | `#0d0d0d` · `#141414` · `#1a1a1a` |
+| Hairlines | `#262626` · `#3a3a3a` |
+| Text | `#ffffff` · `#cccccc` · `#999999` · `#7d7d7d` |
+| Accent | `#ffc000` (gold) · `#ffce3e` (gold text) · `#c3d9f3` (link) |
+| Radii | `0px` everywhere, except the toggle switch |
+| Type | Saira Condensed (display) · EB Garamond (body) · JetBrains Mono (labels, code) |
+
+### Rules
+
+- Display headlines are uppercase, weight 400, and tracked wide — emphasis comes from size, tracking, and case, never from bold.
+- Gold is reserved for the primary action, active-state markers, and one-pixel rules. It is never used as decoration.
+- Depth comes from surface layering on black. There are no shadows, no gradients, and no glows.
+- Body copy is serif; every label, caption, button, and code block is monospace.
 
 ---
 
@@ -164,11 +197,15 @@ ai-knowledge-transfer-agent/
 ├── app.py
 ├── rag_engine.py
 ├── code_analyzer.py
+├── design_system.py
 ├── requirements.txt
 ├── README.md
 │
 ├── .streamlit/
 │   └── config.toml
+│
+├── assets/
+│   └── cm-hex.svg
 │
 ├── sample_project/
 │   ├── main.py
